@@ -6,7 +6,7 @@ import 'package:flutter_fling/remote_media_player.dart';
 
 class FlutterFling {
   static const MethodChannel _channel = const MethodChannel('flutter_fling');
-  
+
   // static RemoteMediaPlayer _device;
 
   static Future<List<RemoteMediaPlayer>> get players async {
@@ -16,7 +16,7 @@ class FlutterFling {
     } on PlatformException catch (e) {
       print('error starting discovery: ${e.details}');
     }
-      print('THIS SHOULD PRINT AFTER 3 SEC');
+    print('THIS SHOULD PRINT AFTER 3 SEC');
     List<dynamic> players;
     try {
       players = await _channel.invokeMethod('getPlayers');
@@ -121,14 +121,14 @@ class FlutterFling {
   static Future<void> play(
       {@required String mediaUri,
       @required String mediaTitle,
-      @required RemoteMediaPlayer device}) async {
-    if (mediaUri != null && mediaTitle != null && device != null) {
+      @required RemoteMediaPlayer player}) async {
+    if (mediaUri != null && mediaTitle != null && player != null) {
       // _device = device;
       try {
         await _channel.invokeMethod('play', <String, dynamic>{
           'mediaSourceUri': mediaUri,
           'mediaSourceTitle': mediaTitle ?? 'Video',
-          'deviceUid': device.uid
+          'deviceUid': player.uid
         });
       } on PlatformException catch (e) {
         print(e.details);

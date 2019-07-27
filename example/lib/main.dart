@@ -14,14 +14,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<RemoteMediaPlayer> _flingDevices;
-  RemoteMediaPlayer _selectedDevice;
+  RemoteMediaPlayer _selectedPlayer;
   String _mediaState = "null";
 
   @override
   void initState() {
     super.initState();
     getSelectedDevice();
-    getMediaState();
+    getPlayerState();
   }
 
   getCastDevices() async {
@@ -46,25 +46,25 @@ class _MyAppState extends State<MyApp> {
       print('Failed to get selected device');
     }
     setState(() {
-      _selectedDevice = selectedDevice;
+      _selectedPlayer = selectedDevice;
     });
   }
 
   castMediaTo(RemoteMediaPlayer player) async {
-    _selectedDevice = player;
+    _selectedPlayer = player;
     await FlutterFling.play(
-        device: _selectedDevice,
+        player: _selectedPlayer,
         mediaUri: "video link",
         mediaTitle: "Some Video");
-    getMediaState();
+    getPlayerState();
   }
 
-  getMediaState() async {
+  getPlayerState() async {
     String state = '';
     try {
       state = await FlutterFling.playerState;
     } on PlatformException {
-      print('Failed to get media state.');
+      print('Failed to get player state.');
     }
     setState(() {
       _mediaState = state;
@@ -84,7 +84,7 @@ class _MyAppState extends State<MyApp> {
           children: <Widget>[
             Text('Media State: $_mediaState'),
             Text(
-                'Selected Device: ${_selectedDevice != null ? _selectedDevice.name : 'null'}'),
+                'Selected Device: ${_selectedPlayer != null ? _selectedPlayer.name : 'null'}'),
             Text("Fire devices: "),
             _flingDevices == null
                 ? Text('Try casting something')
@@ -140,8 +140,8 @@ class _MyAppState extends State<MyApp> {
               onPressed: () async => await FlutterFling.seekBackPlayer(),
             ),
             RaisedButton(
-              child: Text('Get Media State'),
-              onPressed: () => getMediaState(),
+              child: Text('Get Player State'),
+              onPressed: () => getPlayerState(),
             )
           ],
         ),
