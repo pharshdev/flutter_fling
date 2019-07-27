@@ -2,6 +2,8 @@
 
 Simple plugin to cast media to FireStick and FireTv.
 
+Utilises Amazon's Fling SDK.
+
 NOTE: This plugin currently fling/cast from Android Devices. iOS support soon.
 
 ### Installation
