@@ -2,7 +2,7 @@ name: flutter_fling
 description: A simple flutter plugin to cast media to FireTv and FireStick.
 version: 1.0.0
 author: Harsh <pharsh.dev@gmail.com>
-homepage: https://github.com/pharshdev/logcat
+homepage: https://github.com/pharshdev/flutter_fling
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
