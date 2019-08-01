@@ -4,30 +4,119 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fling/remote_media_player.dart';
 
+enum PlayerDiscoveryStatus { Found, Lost }
+enum MediaState {
+  NoSource,
+  PreparingMedia,
+  ReadyToPlay,
+  Playing,
+  Paused,
+  Seeking,
+  Finished,
+  Error
+}
+enum MediaCondition {
+  Good,
+  WarningContent,
+  WarningBandwidth,
+  ErrorContent,
+  ErrorChannel,
+  ErrorUnknown
+}
+
+typedef void DiscoveryCallback(
+    PlayerDiscoveryStatus status, RemoteMediaPlayer player);
+
+typedef void PlayerStateCallback(
+    MediaState state, MediaCondition condition, int position);
+
 class FlutterFling {
   static const MethodChannel _channel = const MethodChannel('flutter_fling');
+  static const _playerDiscoveryChannel =
+      const EventChannel('flutter_fling/discoveryStream');
+  static const _playerStateChannel =
+      const EventChannel('flutter_fling/playerStateStream');
 
-  // static RemoteMediaPlayer _device;
-
-  static Future<List<RemoteMediaPlayer>> get players async {
+  static startPlayerDiscovery(DiscoveryCallback callback) async {
     try {
       await _channel.invokeMethod('startDiscoveryController');
-      await Future.delayed(Duration(seconds: 3));
+
+      _playerDiscoveryChannel.receiveBroadcastStream().listen((json) {
+        debugPrint(json.toString());
+        callback(
+            json['event'] == 'found'
+                ? PlayerDiscoveryStatus.Found
+                : PlayerDiscoveryStatus.Lost,
+            RemoteMediaPlayer.fromJson(json));
+      });
     } on PlatformException catch (e) {
       print('error starting discovery: ${e.details}');
     }
-    print('THIS SHOULD PRINT AFTER 3 SEC');
-    List<dynamic> players;
-    try {
-      players = await _channel.invokeMethod('getPlayers');
-      print('PLAYERS: ${players.toString()}');
-    } on PlatformException catch (e) {
-      print('players fetch error: ${e.details}');
-    }
-    return players != null
-        ? players.map(RemoteMediaPlayer.fromJson).toList()
-        : List();
   }
+
+  static Future<void> play(PlayerStateCallback callback,
+      {@required String mediaUri,
+      @required String mediaTitle,
+      @required RemoteMediaPlayer player}) async {
+    if (mediaUri != null && mediaTitle != null && player != null) {
+      try {
+        await _channel.invokeMethod('play', <String, dynamic>{
+          'mediaSourceUri': mediaUri,
+          'mediaSourceTitle': mediaTitle ?? 'Video',
+          'deviceUid': player.uid
+        });
+        _playerStateChannel.receiveBroadcastStream().listen((json) {
+          callback(
+              MediaState.values.firstWhere(
+                  (value) => value.toString() == 'MediaState.' + json['state']),
+              MediaCondition.values.firstWhere((value) =>
+                  value.toString() == 'MediaCondition.' + json['condition']),
+              json['position']);
+        });
+      } on PlatformException catch (e) {
+        print(e.details);
+      }
+    }
+  }
+
+  static dispose() async {
+    try {
+      await _channel.invokeMethod('stopDiscoveryController');
+    } on PlatformException catch (e) {
+      print(e.details);
+    }
+  }
+
+  // void stopPlayerDiscovery() async {
+  //   try {
+  //     await _channel.invokeMethod('stopDiscoveryController');
+
+  //     if (_discoveryStreamSubscription != null)
+  //       _discoveryStreamSubscription.cancel();
+  //     _discoveryStreamSubscription = null;
+  //   } on PlatformException catch (e) {
+  //     print('error stopping discovery: ${e.details}');
+  //   }
+  //   print("PLAYER DISCOVERY STOPPED");
+  // }
+
+  // static Future<List<RemoteMediaPlayer>> get players async {
+  //   try {
+  //     await _channel.invokeMethod('startDiscoveryController');
+  //     await Future.delayed(Duration(seconds: 3));
+  //   } on PlatformException catch (e) {
+  //     print('error starting discovery: ${e.details}');
+  //   }
+  //   List<dynamic> players;
+  //   try {
+  //     players = await _channel.invokeMethod('getPlayers');
+  //   } on PlatformException catch (e) {
+  //     print('players fetch error: ${e.details}');
+  //   }
+  //   return players != null
+  //       ? players.map(RemoteMediaPlayer.fromJson).toList()
+  //       : List();
+  // }
 
   // static Future<void> selectDevice({@required RemoteMediaPlayer device}) async {
   //   _device = device;
@@ -83,8 +172,8 @@ class FlutterFling {
 
   static Future<void> mutePlayer(bool muteState) async {
     try {
-      await _channel.invokeMethod(
-          'mutePlayer', <String, dynamic>{'muteState': muteState});
+      await _channel.invokeMethod('mutePlayer',
+          <String, dynamic>{'muteState': muteState ? 'true' : 'false'});
     } on PlatformException catch (e) {
       print(e.details);
     }
@@ -118,32 +207,14 @@ class FlutterFling {
   //   }
   // }
 
-  static Future<void> play(
-      {@required String mediaUri,
-      @required String mediaTitle,
-      @required RemoteMediaPlayer player}) async {
-    if (mediaUri != null && mediaTitle != null && player != null) {
-      // _device = device;
-      try {
-        await _channel.invokeMethod('play', <String, dynamic>{
-          'mediaSourceUri': mediaUri,
-          'mediaSourceTitle': mediaTitle ?? 'Video',
-          'deviceUid': player.uid
-        });
-      } on PlatformException catch (e) {
-        print(e.details);
-      }
-    }
-  }
+  // static Future<String> get playerState async {
+  //   String state;
 
-  static Future<String> get playerState async {
-    String state;
-
-    try {
-      state = await _channel.invokeMethod('playerState');
-    } on PlatformException catch (e) {
-      print(e.details);
-    }
-    return state;
-  }
+  //   try {
+  //     state = await _channel.invokeMethod('playerState');
+  //   } on PlatformException catch (e) {
+  //     print(e.details);
+  //   }
+  //   return state;
+  // }
 }

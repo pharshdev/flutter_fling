@@ -16,25 +16,29 @@ class _MyAppState extends State<MyApp> {
   List<RemoteMediaPlayer> _flingDevices;
   RemoteMediaPlayer _selectedPlayer;
   String _mediaState = "null";
+  String _mediaCondition = "null";
+  String _mediaPosition = "null";
+  FlutterFling fling;
 
   @override
   void initState() {
     super.initState();
+    fling = FlutterFling();
     getSelectedDevice();
-    getPlayerState();
   }
 
   getCastDevices() async {
-    List<RemoteMediaPlayer> flingDevices;
-    try {
-      flingDevices = await FlutterFling.players;
-    } on PlatformException {
-      print('Failed to get devices');
-    }
-    if (!mounted) return;
-
-    setState(() {
-      _flingDevices = flingDevices;
+    FlutterFling.startPlayerDiscovery((status, player) {
+      if (_flingDevices == null) _flingDevices = List();
+      if (status == PlayerDiscoveryStatus.Found) {
+        setState(() {
+          _flingDevices.add(player);
+        });
+      } else {
+        setState(() {
+          _flingDevices.remove(player);
+        });
+      }
     });
   }
 
@@ -53,22 +57,17 @@ class _MyAppState extends State<MyApp> {
   castMediaTo(RemoteMediaPlayer player) async {
     _selectedPlayer = player;
     await FlutterFling.play(
-        player: _selectedPlayer,
-        mediaUri: "video link",
-        mediaTitle: "Some Video");
-    getPlayerState();
-  }
-
-  getPlayerState() async {
-    String state = '';
-    try {
-      state = await FlutterFling.playerState;
-    } on PlatformException {
-      print('Failed to get player state.');
-    }
-    setState(() {
-      _mediaState = state;
-    });
+      (state, condition, position) {
+        setState(() {
+          _mediaState = '$state';
+          _mediaCondition = '$condition';
+          _mediaPosition = '$position';
+        });
+      },
+      player: _selectedPlayer,
+      mediaUri: "media_link_here",
+      mediaTitle: "Some Video",
+    ).then((_) => getSelectedDevice());
   }
 
   @override
@@ -83,6 +82,8 @@ class _MyAppState extends State<MyApp> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text('Media State: $_mediaState'),
+            Text('Media Condition: $_mediaCondition'),
+            Text('Media Position: $_mediaPosition'),
             Text(
                 'Selected Device: ${_selectedPlayer != null ? _selectedPlayer.name : 'null'}'),
             Text("Fire devices: "),
@@ -107,8 +108,8 @@ class _MyAppState extends State<MyApp> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.cast),
+            RaisedButton(
+              child: Text('Search'),
               onPressed: () => getCastDevices(),
             ),
             RaisedButton(
@@ -138,10 +139,6 @@ class _MyAppState extends State<MyApp> {
             RaisedButton(
               child: Text('Back Cast'),
               onPressed: () async => await FlutterFling.seekBackPlayer(),
-            ),
-            RaisedButton(
-              child: Text('Get Player State'),
-              onPressed: () => getPlayerState(),
             )
           ],
         ),

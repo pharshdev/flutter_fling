@@ -70,17 +70,17 @@
       <li class="inherited"><a href="dart-core/Object/operator_equals.html">operator ==</a></li>
     
       <li class="section-title"><a href="flutter_fling/FlutterFling-class.html#static-properties">Static properties</a></li>
-      <li><a href="flutter_fling/FlutterFling/players.html">players</a></li>
-      <li><a href="flutter_fling/FlutterFling/playerState.html">playerState</a></li>
       <li><a href="flutter_fling/FlutterFling/selectedPlayer.html">selectedPlayer</a></li>
     
       <li class="section-title"><a href="flutter_fling/FlutterFling-class.html#static-methods">Static methods</a></li>
+      <li><a href="flutter_fling/FlutterFling/dispose.html">dispose</a></li>
       <li><a href="flutter_fling/FlutterFling/mutePlayer.html">mutePlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/pausePlayer.html">pausePlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/play.html">play</a></li>
       <li><a href="flutter_fling/FlutterFling/playPlayer.html">playPlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/seekBackPlayer.html">seekBackPlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/seekForwardPlayer.html">seekForwardPlayer</a></li>
+      <li><a href="flutter_fling/FlutterFling/startPlayerDiscovery.html">startPlayerDiscovery</a></li>
       <li><a href="flutter_fling/FlutterFling/stopPlayer.html">stopPlayer</a></li>
     
     </ol>
@@ -92,23 +92,30 @@
     <section class="multi-line-signature">
       <span class="returntype"><a href="dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
             <span class="name ">play</span>
-(<wbr>{<span class="parameter" id="play-param-mediaUri"><span>@required</span> <span class="type-annotation"><a href="dart-core/String-class.html">String</a></span> <span class="parameter-name">mediaUri</span>, </span> <span class="parameter" id="play-param-mediaTitle"><span>@required</span> <span class="type-annotation"><a href="dart-core/String-class.html">String</a></span> <span class="parameter-name">mediaTitle</span>, </span> <span class="parameter" id="play-param-device"><span>@required</span> <span class="type-annotation"><a href="remote_media_player/RemoteMediaPlayer-class.html">RemoteMediaPlayer</a></span> <span class="parameter-name">device</span></span> })
+(<wbr><span class="parameter" id="play-param-callback"><span class="type-annotation"><a href="flutter_fling/PlayerStateCallback.html">PlayerStateCallback</a></span> <span class="parameter-name">callback</span>, {</span> <span class="parameter" id="play-param-mediaUri"><span>@required</span> <span class="type-annotation"><a href="dart-core/String-class.html">String</a></span> <span class="parameter-name">mediaUri</span>, </span> <span class="parameter" id="play-param-mediaTitle"><span>@required</span> <span class="type-annotation"><a href="dart-core/String-class.html">String</a></span> <span class="parameter-name">mediaTitle</span>, </span> <span class="parameter" id="play-param-player"><span>@required</span> <span class="type-annotation"><a href="remote_media_player/RemoteMediaPlayer-class.html">RemoteMediaPlayer</a></span> <span class="parameter-name">player</span></span> })
       
     </section>
     
     <section class="summary source-code" id="source">
       <h2><span>Implementation</span></h2>
-      <pre class="language-dart"><code class="language-dart">static Future&lt;void&gt; play(
+      <pre class="language-dart"><code class="language-dart">static Future&lt;void&gt; play(PlayerStateCallback callback,
     {@required String mediaUri,
     @required String mediaTitle,
-    @required RemoteMediaPlayer device}) async {
-  if (mediaUri != null &amp;&amp; mediaTitle != null &amp;&amp; device != null) {
-    &#47;&#47; _device = device;
+    @required RemoteMediaPlayer player}) async {
+  if (mediaUri != null &amp;&amp; mediaTitle != null &amp;&amp; player != null) {
     try {
       await _channel.invokeMethod(&#39;play&#39;, &lt;String, dynamic&gt;{
         &#39;mediaSourceUri&#39;: mediaUri,
         &#39;mediaSourceTitle&#39;: mediaTitle ?? &#39;Video&#39;,
-        &#39;deviceUid&#39;: device.uid
+        &#39;deviceUid&#39;: player.uid
+      });
+      _playerStateChannel.receiveBroadcastStream().listen((json) {
+        callback(
+            MediaState.values.firstWhere(
+                (value) =&gt; value.toString() == &#39;MediaState.&#39; + json[&#39;state&#39;]),
+            MediaCondition.values.firstWhere((value) =&gt;
+                value.toString() == &#39;MediaCondition.&#39; + json[&#39;condition&#39;]),
+            json[&#39;position&#39;]);
       });
     } on PlatformException catch (e) {
       print(e.details);
@@ -126,7 +133,7 @@
 
 <footer>
   <span class="no-break">
-    flutter_fling 0.0.1
+    flutter_fling 2.0.0
   </span>
 
   

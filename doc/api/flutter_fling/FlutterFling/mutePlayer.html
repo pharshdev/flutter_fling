@@ -70,17 +70,17 @@
       <li class="inherited"><a href="dart-core/Object/operator_equals.html">operator ==</a></li>
     
       <li class="section-title"><a href="flutter_fling/FlutterFling-class.html#static-properties">Static properties</a></li>
-      <li><a href="flutter_fling/FlutterFling/players.html">players</a></li>
-      <li><a href="flutter_fling/FlutterFling/playerState.html">playerState</a></li>
       <li><a href="flutter_fling/FlutterFling/selectedPlayer.html">selectedPlayer</a></li>
     
       <li class="section-title"><a href="flutter_fling/FlutterFling-class.html#static-methods">Static methods</a></li>
+      <li><a href="flutter_fling/FlutterFling/dispose.html">dispose</a></li>
       <li><a href="flutter_fling/FlutterFling/mutePlayer.html">mutePlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/pausePlayer.html">pausePlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/play.html">play</a></li>
       <li><a href="flutter_fling/FlutterFling/playPlayer.html">playPlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/seekBackPlayer.html">seekBackPlayer</a></li>
       <li><a href="flutter_fling/FlutterFling/seekForwardPlayer.html">seekForwardPlayer</a></li>
+      <li><a href="flutter_fling/FlutterFling/startPlayerDiscovery.html">startPlayerDiscovery</a></li>
       <li><a href="flutter_fling/FlutterFling/stopPlayer.html">stopPlayer</a></li>
     
     </ol>
@@ -100,8 +100,8 @@
       <h2><span>Implementation</span></h2>
       <pre class="language-dart"><code class="language-dart">static Future&lt;void&gt; mutePlayer(bool muteState) async {
   try {
-    await _channel.invokeMethod(
-        &#39;mutePlayer&#39;, &lt;String, dynamic&gt;{&#39;muteState&#39;: muteState});
+    await _channel.invokeMethod(&#39;mutePlayer&#39;,
+        &lt;String, dynamic&gt;{&#39;muteState&#39;: muteState ? &#39;true&#39; : &#39;false&#39;});
   } on PlatformException catch (e) {
     print(e.details);
   }
@@ -117,7 +117,7 @@
 
 <footer>
   <span class="no-break">
-    flutter_fling 0.0.1
+    flutter_fling 2.0.0
   </span>
 
   
