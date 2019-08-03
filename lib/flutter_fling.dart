@@ -80,6 +80,14 @@ class FlutterFling {
     }
   }
 
+  static Future<void> removePlayerListener() async {
+    try {
+      await _channel.invokeMethod('removePlayerListener');
+    } on PlatformException catch (e) {
+      print(e.details);
+    }
+  }
+
   static Future<void> stopDiscoveryController() async {
     try {
       await _channel.invokeMethod('stopDiscoveryController');

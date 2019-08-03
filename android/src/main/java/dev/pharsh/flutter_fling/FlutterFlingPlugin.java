@@ -56,6 +56,10 @@ public class FlutterFlingPlugin implements MethodCallHandler {
                 flingSdk.stopDiscoveryController();
                 result.success(null);
                 break;
+            case "removePlayerListener":
+                flingSdk.removePlayerListeners();
+                result.success(null);
+                break;
             case "play":
                 final String playerUid = call.argument("deviceUid");
                 final String mediaSourceUri = call.argument("mediaSourceUri");
@@ -186,7 +190,7 @@ public class FlutterFlingPlugin implements MethodCallHandler {
         }
 
         void stopDiscoveryController() {
-            stopPlayer();
+            removePlayerListeners();
             if (mController != null) {
                 mController.stop();
                 discoveryControllerEventChannel.setStreamHandler(null);
@@ -251,13 +255,18 @@ public class FlutterFlingPlugin implements MethodCallHandler {
         }
 
         void stopPlayer() {
+            removePlayerListeners();
             if (mCurrentDevice != null) {
                 mCurrentDevice.stop();
+            }
+        }
+
+        void removePlayerListeners() {
+            if (mCurrentDevice != null) {
                 mCurrentDevice.removeStatusListener(mListener);
                 mListener = null;
                 playerStateEventChannel.setStreamHandler(null);
             }
-
         }
 
         void playPlayer() {
