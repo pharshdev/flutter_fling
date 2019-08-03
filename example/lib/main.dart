@@ -64,7 +64,8 @@ class _MyAppState extends State<MyApp> {
       });
     },
             player: _selectedPlayer,
-            mediaUri: "media uri",
+            mediaUri:
+                "https://ran.openstorage.host/dl/IJ4CGyOjKl1BjOyTAxFnGA/1565422242/889127646/5ca3772258fd44.44825533/D%20C%20Proper.mkv",
             mediaTitle: "media title")
         .then((_) => getSelectedDevice());
   }
@@ -117,6 +118,10 @@ class _MyAppState extends State<MyApp> {
                 await FlutterFling.stopDiscoveryController();
                 setState(() {
                   _flingDevices = List();
+                  _mediaState = 'null';
+                  _mediaCondition = 'null';
+                  _mediaPosition = '0';
+                  _selectedPlayer = null;
                 });
               },
             ),

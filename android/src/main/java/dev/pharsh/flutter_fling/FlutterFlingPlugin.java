@@ -136,11 +136,6 @@ public class FlutterFlingPlugin implements MethodCallHandler {
 
         FlingSdk(Registrar registrar) {
             this.registrar = registrar;
-        }
-
-        void startDiscoveryController() {
-            stopDiscoveryController();
-            mPlayers = new HashSet<>();
             mController = new DiscoveryController(registrar.context());
             discoveryControllerEventChannel = new EventChannel(registrar.messenger(), DISCOVERY_CONTROLLER_STREAM);
             discoveryControllerEventChannel.setStreamHandler(
@@ -155,6 +150,23 @@ public class FlutterFlingPlugin implements MethodCallHandler {
                             discoveryControllerEventSink.setDelegate(null);
                         }
                     });
+            playerStateEventChannel = new EventChannel(registrar.messenger(), PLAYER_STATE_STREAM);
+            playerStateEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+                @Override
+                public void onListen(Object o, EventChannel.EventSink sink) {
+                    playerStateEventSink.setDelegate(sink);
+                }
+
+                @Override
+                public void onCancel(Object o) {
+                    playerStateEventSink.setDelegate(null);
+                }
+            });
+        }
+
+        void startDiscoveryController() {
+//            stopDiscoveryController();
+            mPlayers = new HashSet<>();
 
             this.mController.start("amzn.thin.pl", new DiscoveryController.IDiscoveryListener() {
                 @Override
@@ -193,8 +205,6 @@ public class FlutterFlingPlugin implements MethodCallHandler {
             removePlayerListeners();
             if (mController != null) {
                 mController.stop();
-                discoveryControllerEventChannel.setStreamHandler(null);
-                mController = null;
             }
         }
 
@@ -233,25 +243,11 @@ public class FlutterFlingPlugin implements MethodCallHandler {
         }
 
         void fling(final String name, final String title) {
-            playerStateEventChannel = new EventChannel(registrar.messenger(), PLAYER_STATE_STREAM);
             mListener = new Monitor();
             mCurrentDevice.addStatusListener(mListener);
             long MONITOR_INTERVAL = 1000L;
             mCurrentDevice.setPositionUpdateInterval(MONITOR_INTERVAL);
-            playerStateEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
-                @Override
-                public void onListen(Object o, EventChannel.EventSink sink) {
-                    playerStateEventSink.setDelegate(sink);
-                }
-
-                @Override
-                public void onCancel(Object o) {
-                    playerStateEventSink.setDelegate(null);
-                }
-            });
-
             mCurrentDevice.setMediaSource(name, title, true, false);
-
         }
 
         void stopPlayer() {
@@ -265,7 +261,6 @@ public class FlutterFlingPlugin implements MethodCallHandler {
             if (mCurrentDevice != null) {
                 mCurrentDevice.removeStatusListener(mListener);
                 mListener = null;
-                playerStateEventChannel.setStreamHandler(null);
             }
         }
 
