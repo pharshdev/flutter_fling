@@ -16,7 +16,7 @@ NOTE: This plugin currently fling/cast from Android Devices. iOS support soon.
 ### Add package to pubspec.yaml
 
 ```sh
-flutter_fling: ^2.0.1
+flutter_fling: ^2.0.2
 ```
 
 ### Add import

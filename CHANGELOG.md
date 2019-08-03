@@ -1,3 +1,7 @@
+## 2.0.2
+
+* Fix freeze on re-casting media
+
 ## 2.0.1
 
 * Added seek to position. Code optimised for better cleanup.
