@@ -28,8 +28,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   getCastDevices() async {
-    FlutterFling.startPlayerDiscovery((status, player) {
-      if (_flingDevices == null) _flingDevices = List();
+    FlutterFling.startDiscoveryController((status, player) {
+      _flingDevices = List();
       if (status == PlayerDiscoveryStatus.Found) {
         setState(() {
           _flingDevices.add(player);
@@ -56,18 +56,17 @@ class _MyAppState extends State<MyApp> {
 
   castMediaTo(RemoteMediaPlayer player) async {
     _selectedPlayer = player;
-    await FlutterFling.play(
-      (state, condition, position) {
-        setState(() {
-          _mediaState = '$state';
-          _mediaCondition = '$condition';
-          _mediaPosition = '$position';
-        });
-      },
-      player: _selectedPlayer,
-      mediaUri: "media_link_here",
-      mediaTitle: "Some Video",
-    ).then((_) => getSelectedDevice());
+    await FlutterFling.play((state, condition, position) {
+      setState(() {
+        _mediaState = '$state';
+        _mediaCondition = '$condition';
+        _mediaPosition = '$position';
+      });
+    },
+            player: _selectedPlayer,
+            mediaUri: "media uri",
+            mediaTitle: "media title")
+        .then((_) => getSelectedDevice());
   }
 
   @override
@@ -113,6 +112,15 @@ class _MyAppState extends State<MyApp> {
               onPressed: () => getCastDevices(),
             ),
             RaisedButton(
+              child: Text('Dispose Controller'),
+              onPressed: () async {
+                await FlutterFling.stopDiscoveryController();
+                setState(() {
+                  _flingDevices = List();
+                });
+              },
+            ),
+            RaisedButton(
               child: Text('Play Cast'),
               onPressed: () async => await FlutterFling.playPlayer(),
             ),
@@ -122,7 +130,12 @@ class _MyAppState extends State<MyApp> {
             ),
             RaisedButton(
               child: Text('Stop Cast'),
-              onPressed: () async => await FlutterFling.stopPlayer(),
+              onPressed: () async {
+                await FlutterFling.stopPlayer();
+                setState(() {
+                  _flingDevices = null;
+                });
+              },
             ),
             RaisedButton(
               child: Text('Mute Cast'),
@@ -139,6 +152,11 @@ class _MyAppState extends State<MyApp> {
             RaisedButton(
               child: Text('Back Cast'),
               onPressed: () async => await FlutterFling.seekBackPlayer(),
+            ),
+            RaisedButton(
+              child: Text('Seek to 30sec'),
+              onPressed: () async =>
+                  await FlutterFling.seekToPlayer(position: 30000),
             )
           ],
         ),
